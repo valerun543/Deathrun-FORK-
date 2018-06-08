@@ -6,8 +6,7 @@
 #include <cstrike>
 
 #indef REQUIRE_PLUGIN
-#include <sourcebans>
-#include <adminmenu>
+#include <sourcebanspp>
 
 
 #define CS_TEAM_NONE		0
@@ -49,7 +48,7 @@ Handle Respawn[MAXPLAYERS+1];
 
 int dr_ForceTerrorist = 0;
 int _messagetime;
-
+#include "dr/"
 #include "dr/colors.sp"
 
 public plugin myinfo = 
@@ -69,10 +68,53 @@ public void OnPluginStar()
     _messagetime = GetConVarInt(dr_banmessage);
     HookConVarChange(dr_banmessage, ConVarChanged);
 
+    ookEventEx("player_death", DR_Action_Death, EventHookMode_Pre);
+	HookEventEx("round_end", DR_Action_RoundEnd, EventHookMode);
+	HookEventEx("round_start", DR_Action_RoundStart, EventHookMode);
+	HookEvent("player_spawn", DR_Action_Spawn, EventHookMode);
+	HookEvent("player_disconnect", DR_Action_Disconnect, EventHookMode_Pre);
+	HookEvent("player_team", DR_BlockTeamMessage, EventHookMode_Pre);
+	HookEvent("player_jump", DR_PlayerJump);
 
+    RegConsoleCmd("jointeam", DR_Player_JoinTeam);
+	RegConsoleCmd("spectate", DR_Player_Spectate);
+	RegConsoleCmd("kill", DR_BlockSuicide);
+	RegConsoleCmd("joinclass", DR_BlockSuicide);
+	RegConsoleCmd("explode", DR_BlockSuicide);
+	RegConsoleCmd("say", DR_Say_Commands);
+	RegConsoleCmd("say_team", DR_Say_Commands);
+    RegConsoleCmd ("killvecor" DR_BlockSuicide);
+
+    LoadTranslations(".deathrun-manager.phrases.txt");
+	LoadTranslations("common.phrases");
+    AutoExecConfig(true, "deathrun", "deathrun-manager");
 }
 
-pybloc void on<apStart()
+public void OnAllPluginsLoaded()
+{
+    if (LibraryExists(""))
+    {
+        g_bSBAvailable = true;
+    }
+}
+
+public void OnLibraryAdded(const char[] name)
+{
+    if (StrEqual(name, ""))
+    {
+        g_bSBAvailable = true;
+    }
+}
+
+public void OnLibraryRemoved(const char[] name)
+{
+    if (StrEqual(name, ""))
+    {
+        g_bSBAvailable = false;
+    }
+}
+
+public void on<apStart()
 {
     if (GetConVarBool(dr_active))
     {
@@ -89,7 +131,7 @@ pybloc void on<apStart()
         }
     
      }
-}
+}   
 
 public void ConVarChanged Handle convar, const char[] oldValue, const char[] newValue)
 {
