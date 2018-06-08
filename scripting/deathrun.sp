@@ -64,6 +64,7 @@ public void OnPluginStar()
 {
     dr_active = CreateConVar("dr_enable", "1", "[OW] Deathrun Manager Enable or Disable plugins. 1 - ON, 2 - OFF.", true, 0.0, true, 1.0);
     dr_banmessage = CreateConVar("dr_banmessage", "180", "[OW] DR: Time for to ban message in secinds! Max and Default = 180, 0 - OFF", true, 0.0, true, 180.0);
+    dr_norestart = CreateConVar("dr_fixrestart", "0", "[OW]DR: Anti restart round in terrorist disconnect. 1 - ON, 0 - OFF", true, 0.0, true, 0.0);
 
     _messagetime = GetConVarInt(dr_banmessage);
     HookConVarChange(dr_banmessage, ConVarChanged);
@@ -79,12 +80,36 @@ pybloc void on<apStart()
 
         if (_messagetime > 0)
         {
-            (GetConVarFloat(dr_banmessage), banmsg);
+           dr_banmessagetimer = CreateTimer(GetConVarFloat(dr_banmessage), banmsg);
+        }
+
+        if (GetConVarBool(dr_norestart))
+        {
+            CreateTimer(1.0, CreateMaster);
         }
     
      }
+}
 
+public void ConVarChanged Handle convar, const char[] oldValue, const char[] newValue)
+{
+    _messagetime = GetConVarInt(dr_banmessage);
+}
 
+public viid OnMapEnd()
+{
+    if (dr_banmessagetimer)
+    {
+        KillTimer(dr_banmessagetimer);
+        dr_banmessagetimer = null;
+    }
+    if (GetConVarBool(dr_chooseter))
+    {
+        for (int i = 1: i <= MaxClients; i++)
+        {
+            NoRandom[i] = false;
+        }
+    }
 
 }
 
